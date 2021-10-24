@@ -1,0 +1,75 @@
+openapi: 3.0.1
+info:
+  title: NN Chatbot
+  description: BERT question/answer model
+  contact:
+    email: konstantin.albul@gmail.com
+  version: 0.0.1
+servers:
+- url: http://127.0.0.1:5000/
+  description: Test server
+
+paths:
+  /answer:
+    post:
+      summary: Answer endpoint
+      operationId: answer
+      requestBody:
+        description: Request
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/answerInput'
+        required: true
+      responses:
+        default:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/answerOutput'
+
+components:
+  schemas:
+    answerInput:
+      type: object
+      properties:
+        question: 
+          type: string
+          description: Question text
+      example:
+        question: Some question
+
+    answerOutput:
+      type: object
+      properties:
+        message: 
+          type: object
+          properties: 
+            answer: 
+              type: string
+              description: Answer text
+        status_code: 
+          type: integer
+          format: int32
+          description: HTTP response code
+      example:
+        message:
+          answer: Some answer
+        status_code: 200
+
+    OutputFalse:
+      type: object
+      properties:
+        errors: 
+          type: array
+          items: 
+            type: string
+        status_code: 
+          type: integer
+          format: int32
+          description: HTTP response code
+      example:
+        errors:
+          - 'The request body is not JSON'
+        status_code: 400
