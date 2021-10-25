@@ -14,7 +14,9 @@ RUN python -m pip install --upgrade pip
 ADD requirements.txt .
 RUN pip install -r requirements.txt
 
+COPY run_app.py .
 COPY src/ src/
+COPY model/ model/
 
 # run the command to start uWSGI
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run_app:APP"]

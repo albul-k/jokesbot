@@ -28,7 +28,7 @@ MODEL = AutoModel.from_pretrained("sberbank-ai/sbert_large_nlu_ru")
 
 # Load BERT indexes
 BERT_INDEX = AnnoyIndex(1024, 'angular')
-BERT_INDEX.load('model/bert_index')
+BERT_INDEX.load('model/bert_index.ann')
 
 with open('model/index_map.pkl', 'rb') as file:
     INDEX_MAP = pickle.load(file)
