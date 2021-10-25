@@ -4,27 +4,34 @@ app.py
 
 import logging
 from logging.handlers import RotatingFileHandler
-# from logging.config import dictConfig
-from typing import Tuple
 
+import string
+import pickle
 import flask
 from flask import Flask, request, make_response, jsonify
 from flask_restful import Api
 from flask_cors import CORS
 
 import nltk
+from annoy import AnnoyIndex
 from transformers import AutoTokenizer, AutoModel
 from pymorphy2 import MorphAnalyzer
 from stop_words import get_stop_words
-import string
 
-from src.models import Model
 from src.exceptions import InvalidUsage
 from src.response_templates import response_success
 
 
-# Load BERT model
-BERT = Model()
+# Load pretrained BERT model
+TOKENIZER = AutoTokenizer.from_pretrained("sberbank-ai/sbert_large_nlu_ru")
+MODEL = AutoModel.from_pretrained("sberbank-ai/sbert_large_nlu_ru")
+
+# Load BERT indexes
+BERT_INDEX = AnnoyIndex(1024, 'angular')
+BERT_INDEX.load('model/bert_index')
+
+with open('model/index_map.pkl', 'rb') as file:
+    INDEX_MAP = pickle.load(file)
 
 MORPHER = MorphAnalyzer()
 STOP_WORDS = set(get_stop_words("ru") + nltk.corpus.stopwords.words('russian'))
@@ -44,10 +51,10 @@ def answer() -> flask.make_response:
         raise InvalidUsage.bad_request()
 
     question = preprocess_question(request.json['question'])
-    answer = get_answer(question)
+    answer_ = get_answer(question)
 
     res = make_response(jsonify(response_success(
-        answer=answer,
+        answer=answer_,
         status_code=200,
     )))
     return res
@@ -87,10 +94,11 @@ def get_answer(question: str) -> str:
 
     try:
         question = preprocess_question(question)
-        tok = tokenizer(question, padding=True, truncation=True, max_length=24, return_tensors='pt')
-        vector = BERT(**tok)[1].detach().numpy()[0]
-        return index.get_nns_by_vector(vector, 2)
-    except TypeError as error:
+        tok = TOKENIZER(question, padding=True, truncation=True, max_length=24, return_tensors='pt')
+        vector = MODEL(**tok)[1].detach().numpy()[0]
+        answers = BERT_INDEX.get_nns_by_vector(vector, 2)
+        return [INDEX_MAP[i] for i in answers][0]
+    except Exception as error:
         raise InvalidUsage.bad_request() from error
 
 def create_app() -> Flask:
