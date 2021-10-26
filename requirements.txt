@@ -42,9 +42,6 @@ six==1.16.0
 stop-words==2018.7.23
 tokenizers==0.10.3
 toml==0.10.2
-# torch==1.10.0+cu102
-# torchaudio==0.10.0+cu102
-# torchvision==0.11.1+cu102
 torch
 torchaudio
 torchvision

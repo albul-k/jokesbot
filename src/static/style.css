@@ -1,0 +1,8 @@
+html,body {
+    height: 100vh;
+}
+
+body {
+    flex-direction: column!important;
+    display: flex!important;
+}

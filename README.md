@@ -1,8 +1,8 @@
-# nn_chatbot_backend
+# bert_chatbot
 
 Python NN project
 
-[![docker-ci](https://github.com/albul-k/nn_chatbot_backend/actions/workflows/docker-image.yml/badge.svg?branch=main)](https://github.com/albul-k/nn_chatbot_backend/actions/workflows/docker-image.yml)
+[![docker-ci](https://github.com/albul-k/bert_chatbot/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/albul-k/bert_chatbot/actions/workflows/main.yml)
 
 ## Used stack
 
@@ -14,6 +14,6 @@ Python NN project
 
 ```bash
 #!/bin/bash
-docker pull albulk/nn_chatbot:latest
-docker run -d -p 5000:5000 albulk/nn_chatbot
+docker pull albulk/bert_chatbot:latest
+docker run -d -p 5000:5000 albulk/bert_chatbot
 ```

@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 env:
-  REGISTRY_IMAGE: nn_chatbot
+  REGISTRY_IMAGE: bert_chatbot
   IMAGE_TAG: latest
 
 jobs:

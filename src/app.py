@@ -7,8 +7,7 @@ from logging.handlers import RotatingFileHandler
 
 import string
 import pickle
-import flask
-from flask import Flask, request, make_response, jsonify
+from flask import Flask, request, make_response, jsonify, render_template, flash, redirect, url_for
 from flask_restful import Api
 from flask_cors import CORS
 
@@ -38,20 +37,57 @@ STOP_WORDS = set(get_stop_words("ru") + nltk.corpus.stopwords.words('russian'))
 EXCLUDE = set(string.punctuation)
 
 
-def answer() -> flask.make_response:
+def home() -> str:
+    """home endpoint
+
+    Returns
+    -------
+    str
+        html
+    """
+
+    return render_template('home.html')
+
+def handle_question_form():
+    """handle question form
+
+    Returns
+    -------
+    str
+        html
+
+    Raises
+    ------
+    InvalidUsage.bad_request
+        Raises 404 if request is empty
+    """
+
+    question = request.form['question']
+    if question:
+        answer = get_answer(question)
+    else:
+        answer = "You haven't asked your question"
+    flash(answer)
+    return redirect(url_for("home"))
+
+def answer() -> str:
     """answer endpoint
 
     Returns
     -------
-    flask.make_response
-        JSON response
+    str
+        html
+
+    Raises
+    ------
+    InvalidUsage.bad_request
+        Raises 404 if request JSON is wrong
     """
 
     if not request.is_json or len(request.json) == 0:
         raise InvalidUsage.bad_request()
 
-    question = preprocess_question(request.json['question'])
-    answer_ = get_answer(question)
+    answer_ = get_answer(request.json['question'])
 
     res = make_response(jsonify(response_success(
         answer=answer_,
@@ -113,7 +149,10 @@ def create_app() -> Flask:
     app = Flask(__name__)
     CORS(app, resources={r"*": {"origins": "*"}})
     Api(app)
+    app.config['SECRET_KEY'] = 'mysecretkey'
+    app.add_url_rule('/', view_func=home, methods=['GET'])
     app.add_url_rule('/answer', view_func=answer, methods=['POST'])
+    app.add_url_rule('/handle_question_form', view_func=handle_question_form, methods=['POST'])
 
     register_errorshandler(app)
     register_logger(app)

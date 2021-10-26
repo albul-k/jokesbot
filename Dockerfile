@@ -1,5 +1,5 @@
 FROM python:3.7.7
-LABEL "repository"="https://github.com/albul-k/nn_chatbot_backend"
+LABEL "repository"="https://github.com/albul-k/bert_chatbot"
 LABEL "maintainer"="Konstantin Albul"
 
 EXPOSE 5000
