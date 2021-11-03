@@ -7,71 +7,116 @@ from logging.handlers import RotatingFileHandler
 
 import string
 import pickle
-from flask import Flask, request, make_response, jsonify, render_template, flash, redirect, url_for
+import sqlite3 as sql
+from flask import Flask, request, make_response, jsonify, render_template, flash, redirect, \
+                  url_for, g
+import flask
 from flask_restful import Api
 from flask_cors import CORS
 
-import nltk
+from gensim.models import FastText
 from annoy import AnnoyIndex
-from transformers import AutoTokenizer, AutoModel
 from pymorphy2 import MorphAnalyzer
 from stop_words import get_stop_words
+import numpy as np
 
 from src.exceptions import InvalidUsage
 from src.response_templates import response_success
 
 
-# Load pretrained BERT model
-TOKENIZER = AutoTokenizer.from_pretrained("sberbank-ai/sbert_large_nlu_ru")
-MODEL = AutoModel.from_pretrained("sberbank-ai/sbert_large_nlu_ru")
+DB_PATH = 'common/jokes.db'
 
-# Load BERT indexes
-BERT_INDEX = AnnoyIndex(1024, 'angular')
-BERT_INDEX.load('model/bert_index.ann')
+# FastText indexes
+F_VECT = 30
+FT_INDEX = AnnoyIndex(F_VECT, 'angular')
+FT_INDEX.load('common/ft_index.ann')
 
-with open('model/index_map.pkl', 'rb') as file:
+# FastText model
+MODEL_FT = FastText.load('common/model_FT.ft')
+
+# Indexed jokes
+with open('common/index_map.pkl', 'rb') as file:
     INDEX_MAP = pickle.load(file)
 
+# Encoder with joke themes
+with open('common/label_encoder.pkl', 'rb') as file:
+    LABEL_ENCODER = pickle.load(file)
+
+# LinearSVC model
+with open('common/model_svc.pkl', 'rb') as file:
+    MODEL_SVC = pickle.load(file)
+
+# TfidfVectorizer
+with open('common/tfidf.pkl', 'rb') as file:
+    TFIDF = pickle.load(file)
+IDFS = {v[0]: v[1] for v in zip(TFIDF.vocabulary_, TFIDF.idf_)}
+MIDF = np.mean(TFIDF.idf_)
+
 MORPHER = MorphAnalyzer()
-STOP_WORDS = set(get_stop_words("ru") + nltk.corpus.stopwords.words('russian'))
+STOP_WORDS = set(get_stop_words("ru"))
 EXCLUDE = set(string.punctuation)
 
 
-def home() -> str:
-    """home endpoint
+def get_db() -> sql.connect:
+    """Get connect to SQL database
 
     Returns
     -------
-    str
-        html
+    sql.connect
+        Connection object
+    """
+
+    db_conn = getattr(g, '_database', None)
+    if db_conn is None:
+        db_conn = g._database = sql.connect(DB_PATH)
+    return db_conn
+
+def close_connection(exception) -> None:
+    """Close DB connect
+
+    Parameters
+    ----------
+    exception : [type]
+        [description]
+    """
+
+    db_conn = getattr(g, '_database', None)
+    if db_conn is not None:
+        db_conn.close()
+
+def home() -> flask.render_template:
+    """Start url
+
+    Returns
+    -------
+    flask.render_template
+        flask.render_template string
     """
 
     return render_template('home.html')
 
-def handle_question_form():
-    """handle question form
+def handle_joke_form() -> flask.redirect:
+    """Handle joke theme form
 
     Returns
     -------
-    str
-        html
-
-    Raises
-    ------
-    InvalidUsage.bad_request
-        Raises 404 if request is empty
+    flask.redirect
+        flask.redirect response
     """
 
-    question = request.form['question']
-    if question:
-        answer = get_answer(question)
+    text = request.form['text']
+    if text:
+        try:
+            joke_ = get_joke(text)
+            flash(joke_, 'alert-success')
+        except InvalidUsage as error:
+            flash('<br/>'.join(error.message['errors']), 'alert-danger')
     else:
-        answer = "You haven't asked your question"
-    flash(answer)
+        flash('You have not asked the subject of the joke', 'alert-warning')
     return redirect(url_for("home"))
 
-def answer() -> str:
-    """answer endpoint
+def joke() -> str:
+    """Endpoint joke
 
     Returns
     -------
@@ -87,55 +132,115 @@ def answer() -> str:
     if not request.is_json or len(request.json) == 0:
         raise InvalidUsage.bad_request()
 
-    answer_ = get_answer(request.json['question'])
+    joke_ = get_joke(request.json['text'])
 
     res = make_response(jsonify(response_success(
-        answer=answer_,
+        text=joke_,
         status_code=200,
     )))
     return res
 
-def preprocess_question(question: str) -> str:
-    """Preprocess question for BERT model
+def preprocess_text(text: str) -> str:
+    """Preprocess text
 
     Parameters
     ----------
-    question : str
-        Question text
+    text : str
+        text
 
     Returns
     -------
     str
-        Preprocessed question
+        Preprocessed text
     """
 
-    spls = "".join(i for i in question.strip() if i not in EXCLUDE).split()
+    spls = "".join(i for i in text.strip() if i not in EXCLUDE).split()
     spls = [MORPHER.parse(i.lower())[0].normal_form for i in spls]
     spls = [i for i in spls if i not in STOP_WORDS and i != ""]
     return ' '.join(spls)
 
-def get_answer(question: str) -> str:
-    """Get answer from BERT model
+def get_joke(text: str) -> str:
+    """Get joke
 
     Parameters
     ----------
-    question : str
-        Question
+    text : str
+        text
 
     Returns
     -------
     str
-        Answer text
+        Joke text
     """
 
+    def embed_txt(text: str, idfs: dict, midf: float) -> np.ndarray:
+        """Make embedding from text string
+
+        Parameters
+        ----------
+        text : str
+            text
+        idfs : dict
+            TFIDF map
+        midf : float
+            Mean idf
+
+        Returns
+        -------
+        np.ndarray
+            Embedding
+        """
+
+        n_ft = 0
+        vector_ft = np.zeros(F_VECT)
+        for word in text:
+            if word in MODEL_FT.wv:
+                vector_ft += MODEL_FT.wv[word] * idfs.get(word, midf)
+            n_ft += idfs.get(word, midf)
+        return vector_ft / n_ft
+
+    def query_db(query: str, one: bool = True) -> tuple:
+        """Query to DB
+
+        Parameters
+        ----------
+        query : str
+            Query text
+        one : bool, optional
+            Return one row if True, by default True
+
+        Returns
+        -------
+        tuple
+            Query result
+        """
+
+        cur = get_db().execute(query)
+        rows = cur.fetchall()
+        cur.close()
+        return (rows[0] if rows else None) if one else rows
+
     try:
-        question = preprocess_question(question)
-        tok = TOKENIZER(question, padding=True, truncation=True, max_length=24, return_tensors='pt')
-        vector = MODEL(**tok)[1].detach().numpy()[0]
-        answers = BERT_INDEX.get_nns_by_vector(vector, 2)
-        return [INDEX_MAP[i] for i in answers][0]
+        text = preprocess_text(text)
+        text_ = TFIDF.transform([text])
+
+        vect_ft = embed_txt(text, IDFS, MIDF)
+        ft_index_val, distances = FT_INDEX.get_nns_by_vector(vect_ft, 1, include_distances=True)
+        joke_ = None
+        for item, dist in zip(ft_index_val, distances):
+            if dist <= 0.25:
+                joke_ = INDEX_MAP[item][1]
+            break
+        if joke_:
+            return joke_
+
+        theme = MODEL_SVC.predict(text_)
+        theme = LABEL_ENCODER.inverse_transform(theme)[0]
+        sql_query = f'SELECT text FROM joke WHERE theme == "{theme}" ORDER BY RANDOM() LIMIT 1'
+        joke_ = query_db(sql_query, one=True)
+        return joke_[0]
     except Exception as error:
-        raise InvalidUsage.bad_request() from error
+        raise InvalidUsage.unknown_error() from error
 
 def create_app() -> Flask:
     """Create flask app
@@ -151,8 +256,9 @@ def create_app() -> Flask:
     Api(app)
     app.config['SECRET_KEY'] = 'mysecretkey'
     app.add_url_rule('/', view_func=home, methods=['GET'])
-    app.add_url_rule('/answer', view_func=answer, methods=['POST'])
-    app.add_url_rule('/handle_question_form', view_func=handle_question_form, methods=['POST'])
+    app.add_url_rule('/joke', view_func=joke, methods=['POST'])
+    app.add_url_rule('/handle_joke_form', view_func=handle_joke_form, methods=['POST'])
+    app.teardown_appcontext(close_connection)
 
     register_errorshandler(app)
     register_logger(app)

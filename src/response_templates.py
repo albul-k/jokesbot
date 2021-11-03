@@ -5,14 +5,14 @@ response_templates.py
 from typing import List
 
 
-def response_success(answer: str,
+def response_success(text: str,
                      status_code: int = 200) -> dict:
     """Template for success response
 
     Parameters
     ----------
-    answer : str
-        Answer text
+    text : str
+        text
     status_code : int, optional
         Status code of response, by default 200
 
@@ -24,7 +24,7 @@ def response_success(answer: str,
 
     templ = {
         'message': {
-            'answer': answer,
+            'text': text,
         },
         'status_code': status_code
     }

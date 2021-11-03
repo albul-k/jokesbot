@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: NN Chatbot
-  description: BERT question/answer model
+  title: JokesBot
+  description: JokesBot FastText model
   contact:
     email: konstantin.albul@gmail.com
   version: 0.0.1
@@ -19,7 +19,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/answerInput'
+              $ref: '#/components/schemas/jokeThemeInput'
         required: true
       responses:
         default:
@@ -27,20 +27,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/answerOutput'
+                $ref: '#/components/schemas/jokeOutput'
 
 components:
   schemas:
-    answerInput:
+    jokeThemeInput:
       type: object
       properties:
         question: 
           type: string
-          description: Question text
+          description: Joke theme/keywords
       example:
-        question: Some question
+        question: анекдот про чукчу
 
-    answerOutput:
+    jokeOutput:
       type: object
       properties:
         message: 
@@ -48,14 +48,14 @@ components:
           properties: 
             answer: 
               type: string
-              description: Answer text
+              description: Joke text
         status_code: 
           type: integer
           format: int32
           description: HTTP response code
       example:
         message:
-          answer: Some answer
+          answer: Чукча интересуется у дальнобойщика:- Водителя, до тайги довезешь?- Нет.- А \"камаза\" довезет?
         status_code: 200
 
     OutputFalse:

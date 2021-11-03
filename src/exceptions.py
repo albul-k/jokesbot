@@ -8,6 +8,7 @@ from src.response_templates import response_error
 
 
 BAD_REQUEST = response_error(['The request body is not JSON'], status_code=400)
+UNKNOWN_ERROR = response_error(['Something went wrong'], status_code=500)
 
 
 class InvalidUsage(Exception):
@@ -32,6 +33,9 @@ class InvalidUsage(Exception):
         if status_code is not None:
             self.status_code = status_code
 
+    def __str__(self) -> str:
+        return self.message
+
     def to_json(self) -> Response:
         """JSON serializing with flask jsonify
 
@@ -54,3 +58,15 @@ class InvalidUsage(Exception):
         """
 
         return cls(**BAD_REQUEST)
+
+    @classmethod
+    def unknown_error(cls):
+        """Unknown error exception
+
+        Returns
+        -------
+        cls
+            Class with exception
+        """
+
+        return cls(**UNKNOWN_ERROR)

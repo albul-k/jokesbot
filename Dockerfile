@@ -1,5 +1,5 @@
 FROM python:3.7.7
-LABEL "repository"="https://github.com/albul-k/bert_chatbot"
+LABEL "repository"="https://github.com/albul-k/jokesbot"
 LABEL "maintainer"="Konstantin Albul"
 
 EXPOSE 5000
@@ -16,7 +16,7 @@ RUN pip install -r requirements.txt
 
 COPY run_app.py .
 COPY src/ src/
-COPY model/ model/
+COPY common/ common/
 
 # run the command to start uWSGI
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run_app:APP"]

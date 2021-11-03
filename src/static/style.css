@@ -6,3 +6,8 @@ body {
     flex-direction: column!important;
     display: flex!important;
 }
+
+.alert-custom {
+    height: 400px;
+    margin: 50px 0;
+}
