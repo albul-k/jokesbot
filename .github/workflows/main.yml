@@ -23,11 +23,9 @@ jobs:
       
       - name: Install the dependencies and run train
         run: |
-          pip install virtualenv
-          virtualenv venv
-          source venv/bin/activate
           pip install -r ./requirments.txt
           python run_train.py
+          ls
 
       - name: Cache Docker layers
         uses: actions/cache@v2
