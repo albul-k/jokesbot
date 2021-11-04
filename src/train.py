@@ -11,13 +11,16 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.svm import LinearSVC
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 
 class MyIter:
-    def __iter__(self, df):
-        for _, row in df.iterrows():
+
+    def __init__(self, data: pd.DataFrame) -> None:
+        self.data = data
+
+    def __iter__(self):
+        for _, row in self.data.iterrows():
             yield row['text_token']
 
 
@@ -47,20 +50,10 @@ def main():
     with open(os.path.join('train', 'label_encoder.pkl'), 'wb') as file:
         pickle.dump(le, file)
 
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        df['text_token'], df['theme'],
-        test_size=0.2,
-        stratify=df['theme'],
-        random_state=100
-    )
-
     tfidf = TfidfVectorizer(
         ngram_range=(1, 2),
         max_features=10000
     )
-
-    X_train_idf = tfidf.fit_transform(X_train)
 
     svc = LinearSVC(
         random_state=100,
@@ -68,7 +61,7 @@ def main():
         loss='squared_hinge',
         dual=False,
     )
-    svc.fit(X_train_idf, y_train)
+    svc.fit(tfidf.fit_transform(df['text_token']), df['theme'])
 
     with open(os.path.join('train', 'model_svc.pkl'), 'wb') as file:
         pickle.dump(svc, file)
