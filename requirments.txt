@@ -1,5 +1,5 @@
 aniso8601==9.0.1
-annoy==1.15.0
+annoy==1.17.0
 click==8.0.3
 colorama==0.4.4
 Cython==0.29.14

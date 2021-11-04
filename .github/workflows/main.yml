@@ -2,16 +2,34 @@ name: Build Docker & Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, test-train]
 
 env:
   REGISTRY_IMAGE: jokesbot
-  IMAGE_TAG: latest
+  IMAGE_TAG: test
 
 jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7.7
+
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+      
+      - name: Install the dependencies
+      - run: setup.sh
+
+      - name: Run train
+      - run: python run_train.py
+
   build-docker:
     name: Build the Docker image
     runs-on: ubuntu-latest
+    needs: train
     steps:
       - name: Cache Docker layers
         uses: actions/cache@v2

@@ -8,15 +8,12 @@ EXPOSE 5000
 WORKDIR /usr/src/app
 
 # Copy files
-COPY setup.sh .
 COPY docker-entrypoint.sh .
 COPY requirments.txt .
 COPY run_app.py .
+COPY run_train.py .
 COPY src/ src/
 COPY common/ common/
-
-# Install the dependencies
-RUN ["sh", "./setup.sh"]
 
 # Entrypoint
 ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
