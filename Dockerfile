@@ -11,9 +11,8 @@ WORKDIR /usr/src/app
 COPY docker-entrypoint.sh .
 COPY requirments.txt .
 COPY run_app.py .
-COPY run_train.py .
 COPY src/ src/
-COPY common/ common/
+COPY train/ train/
 
 # Entrypoint
 ENTRYPOINT ["sh", "./docker-entrypoint.sh"]

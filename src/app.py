@@ -24,30 +24,30 @@ from src.exceptions import InvalidUsage
 from src.response_templates import response_success
 
 
-DB_PATH = 'common/jokes.db'
+DB_PATH = 'train/jokes.db'
 
 # FastText indexes
 F_VECT = 30
 FT_INDEX = AnnoyIndex(F_VECT, 'angular')
-FT_INDEX.load('common/ft_index.ann')
+FT_INDEX.load('train/ft_index.ann')
 
 # FastText model
-MODEL_FT = FastText.load('common/model_FT.ft')
+MODEL_FT = FastText.load('train/model_FT.ft')
 
 # Indexed jokes
-with open('common/index_map.pkl', 'rb') as file:
+with open('train/index_map.pkl', 'rb') as file:
     INDEX_MAP = pickle.load(file)
 
 # Encoder with joke themes
-with open('common/label_encoder.pkl', 'rb') as file:
+with open('train/label_encoder.pkl', 'rb') as file:
     LABEL_ENCODER = pickle.load(file)
 
 # LinearSVC model
-with open('common/model_svc.pkl', 'rb') as file:
+with open('train/model_svc.pkl', 'rb') as file:
     MODEL_SVC = pickle.load(file)
 
 # TfidfVectorizer
-with open('common/tfidf.pkl', 'rb') as file:
+with open('train/tfidf.pkl', 'rb') as file:
     TFIDF = pickle.load(file)
 IDFS = {v[0]: v[1] for v in zip(TFIDF.vocabulary_, TFIDF.idf_)}
 MIDF = np.mean(TFIDF.idf_)
