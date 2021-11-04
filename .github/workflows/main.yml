@@ -9,8 +9,8 @@ env:
   IMAGE_TAG: test
 
 jobs:
-  train:
-    name: Train
+  docker-build:
+    name: Build Docker image
     runs-on: ubuntu-latest
     steps:
       - name: Setup Python
@@ -29,11 +29,6 @@ jobs:
           pip install -r ./requirments.txt
           python run_train.py
 
-  build-docker:
-    name: Build the Docker image
-    runs-on: ubuntu-latest
-    needs: train
-    steps:
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
