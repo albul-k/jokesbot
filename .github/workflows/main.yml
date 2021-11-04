@@ -21,15 +21,13 @@ jobs:
       - name: Check Out Repo 
         uses: actions/checkout@v2
       
-      - name: Install the dependencies
+      - name: Install the dependencies and run train
         run: |
           pip install virtualenv
           virtualenv venv
           source venv/bin/activate
           pip install -r ./requirments.txt
-
-      - name: Run train
-        run: python run_train.py
+          python run_train.py
 
   build-docker:
     name: Build the Docker image
