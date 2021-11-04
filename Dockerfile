@@ -9,14 +9,14 @@ WORKDIR /usr/src/app
 
 # Copy files
 COPY setup.sh .
-COPY run.sh .
+COPY docker-entrypoint.sh .
 COPY requirments.txt .
 COPY run_app.py .
 COPY src/ src/
 COPY common/ common/
 
 # Install the dependencies
-RUN ./setup.sh
+RUN ["sh", "./setup.sh"]
 
-# Entrypoint with run script
-ENTRYPOINT ./run.sh
+# Entrypoint
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
