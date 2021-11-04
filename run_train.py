@@ -36,7 +36,7 @@ def main():
     sw = set(get_stop_words("ru"))
     exclude = set(string.punctuation)
 
-    cur = sql.connect('jokes.db').execute('SELECT theme,text FROM joke')
+    cur = sql.connect('jokes1.db').execute('SELECT theme,text FROM joke')
     rows = cur.fetchall()
     cur.close()
 
