@@ -2,11 +2,13 @@
 
 [![docker-ci](https://github.com/albul-k/jokesbot/actions/workflows/main.yml/badge.svg?branch=main)](https://github.com/albul-k/jokesbot/actions/workflows/main.yml)
 
-* [Description](https://github.com/albul-k/jokesbot#description)
-* [Used stack](https://github.com/albul-k/jokesbot#used-stack)
-* [Work algorithm](https://github.com/albul-k/jokesbot#work-algorithm)
-* [How to run](https://github.com/albul-k/jokesbot#how-to-run)
-* [REST API](https://github.com/albul-k/jokesbot#rest-api)
+## Table of contents
+
+* [Description](#description)
+* [Used stack](#used-stack)
+* [Work algorithm](#work-algorithm)
+* [How to run](#how-to-run)
+* [REST API](#rest-api)
 
 ## Description
 
@@ -15,6 +17,7 @@ Do you like jokes? JokesBot knows over 100k jokes =)
 Just give him a theme or keyword.
 
 >_Note: `JokesBot` knows only russian jokes._
+
 
 ## Used stack
 

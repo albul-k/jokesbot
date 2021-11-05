@@ -2,17 +2,25 @@ name: Build Docker & Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [main, test-train]
 
 env:
   REGISTRY_IMAGE: jokesbot
-  IMAGE_TAG: latest
+  IMAGE_TAG: test
 
 jobs:
-  build-docker:
-    name: Build the Docker image
+  train:
+    name: Build Docker image
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Python
+        uses: actions/setup-python@v2.2.2
+        with:
+          python-version: 3.7.7
+
+      - name: Check Out Repo 
+        uses: actions/checkout@v2
+
       - name: Cache Docker layers
         uses: actions/cache@v2
         with:
@@ -20,9 +28,6 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-
-
-      - name: Check Out Repo 
-        uses: actions/checkout@v2
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
