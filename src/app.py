@@ -307,5 +307,5 @@ def register_logger(app: Flask) -> None:
         maxBytes=100000,
         backupCount=10
     )
-    handler.setLevel(logging.ERROR)
+    handler.setLevel(logging.DEBUG)
     app.logger.addHandler(handler)
