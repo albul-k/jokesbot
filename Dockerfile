@@ -8,6 +8,7 @@ EXPOSE 5000
 WORKDIR /usr/src/app
 
 # Copy files
+COPY venv/ venv/
 COPY docker-entrypoint.sh .
 COPY requirments.txt .
 COPY run_app.py .

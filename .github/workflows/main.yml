@@ -10,7 +10,7 @@ env:
 
 jobs:
   train:
-    name: Train models
+    name: Train models & build Docker image
     runs-on: ubuntu-latest
     steps:
       - name: Setup Python
