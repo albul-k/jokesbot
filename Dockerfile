@@ -8,10 +8,11 @@ EXPOSE 5000
 WORKDIR /usr/src/app
 
 # Copy files
+COPY docker-entrypoint.sh .
 COPY requirments.txt .
 COPY run_app.py .
 COPY src/ src/
 COPY train/ train/
 
-# Run
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run_app:APP"]
+# Entrypoint
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
