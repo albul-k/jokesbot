@@ -7,13 +7,14 @@ EXPOSE 5000
 # Set the working directory to /app
 WORKDIR /usr/src/app
 
-# Copy files
-COPY venv/ venv/
-COPY docker-entrypoint.sh .
+RUN python -m pip install --upgrade pip
+
 COPY requirments.txt .
+RUN pip install -r ./requirments.txt
+
+# Copy files
 COPY run_app.py .
 COPY src/ src/
 COPY train/ train/
 
-# Entrypoint
-ENTRYPOINT ["sh", "./docker-entrypoint.sh"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run_app:APP"]
