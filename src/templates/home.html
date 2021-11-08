@@ -13,20 +13,24 @@
   </head>
   <body>
     <div class="container mb-auto">
-      <h3 class="text-center">
+      <h1 class="text-center display-1 mt-3">
         Jokes<span class="text-muted">Bot</span>
-      </h3>
-      <form action="{{ url_for('handle_joke_form') }}" method="post">
-        <div class="mb-3 mt-3">
-          <label for="joke_theme">Enter joke theme:</label>
-          <textarea
-            class="form-control"
-            rows="5"
+      </h1>
+      <form class="form-inline" action="{{ url_for('handle_joke_form') }}" method="post">
+        <div class="input-group mb-3">
+          <input
             id="joke_theme"
             name="text"
-          ></textarea>
+            type="text"
+            class="form-control"
+            placeholder="Enter joke theme"
+            aria-label="Enter joke theme"
+            aria-describedby="basic-addon2"
+          >
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Submit</button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary">Submit</button>
       </form>
       {% block content %}
         {% with messages = get_flashed_messages(with_categories=true) %}
